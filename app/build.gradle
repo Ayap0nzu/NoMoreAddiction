@@ -31,6 +31,7 @@ android {
 }
 def core_version = "1.6.0"
 dependencies {
+    implementation 'com.google.code.gson:gson:2.8.6'
     implementation "androidx.core:core:$core_version"
     implementation 'com.github.denzcoskun:ImageSlideshow:0.1.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'

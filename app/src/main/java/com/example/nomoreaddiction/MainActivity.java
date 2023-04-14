@@ -1,5 +1,6 @@
 package com.example.nomoreaddiction;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -22,21 +23,27 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Chronometer;
 
+import com.google.gson.Gson;
+
 import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity{
     private static Chronometer chronometer;
     private long pauseOffset = 0;
     private boolean running;
+    ArrayList<String> dateArray = new ArrayList<>();
+    ArrayList<Long> chronometerArray = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ;
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd (EEE)", Locale.KOREA);
         String formattedDate = sdf.format(new Date());
@@ -87,12 +94,14 @@ public class MainActivity extends AppCompatActivity{
         // Save the current chronometer time to SharedPreferences
         SharedPreferences prefs = getSharedPreferences("mySharedPrefsFilename", Context.MODE_PRIVATE);
 
-        // Don't forget to call commit() when changing preferences.
+        //      Don't forget to call apply()
         SharedPreferences.Editor editor = prefs.edit();
         editor.putLong("chronoValue", chronometerTime);
 
         String currentDate = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(new Date());
         editor.putString("currentDate", currentDate);
+
+        // Get the current date
 
         editor.apply();
     }
@@ -102,16 +111,17 @@ public class MainActivity extends AppCompatActivity{
         super.onResume();
 
         SharedPreferences prefs = getSharedPreferences("mySharedPrefsFilename", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
         long chronometerTime = prefs.getLong("chronoValue", 0);
         String storedDate = prefs.getString("currentDate", "");
 
         // Get the current date
         String currentDate = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(new Date());
 
-        //  만약 하루가 지났으면
+        //      sharedpreference 파일에 마지막으로 저장된 날짜와 현재 날짜를 비교해 다르면
+        //      즉, 하루가 지났으면 스톱워치를 저장한다.
         if (!storedDate.equals(currentDate)) {
             chronometer.setBase(SystemClock.elapsedRealtime());
-            SharedPreferences.Editor editor = prefs.edit();
             editor.putLong("chronoValue", chronometerTime);
             editor.apply();
         }
@@ -119,7 +129,7 @@ public class MainActivity extends AppCompatActivity{
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
         registerReceiver(screenOffReceiver, filter);
 
-
+        //      알림창 관리
         if (!running) {
             chronometer.setBase(SystemClock.elapsedRealtime() - chronometerTime);
             chronometer.start();
@@ -137,10 +147,11 @@ public class MainActivity extends AppCompatActivity{
                     // Format the elapsed time as a string in "HH:MM:SS" format
                     String formattedTime = String.format("%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds);
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this, "My Notification");
-                    builder.setContentTitle("app");
-                    builder.setContentText(formattedTime);
+                    builder.setContentTitle("휴대폰 중독 방지");
+                    builder.setContentText("휴대폰 사용 시간: "+formattedTime);
                     builder.setSmallIcon(R.drawable.ic_launcher_background);
-                    builder.setAutoCancel(true);
+                    builder.setAutoCancel(false);
+                    builder.setOngoing(true);
 
                     NotificationManagerCompat managerCompat = NotificationManagerCompat.from(MainActivity.this);
                     managerCompat.notify(1, builder.build());
@@ -149,7 +160,6 @@ public class MainActivity extends AppCompatActivity{
                     handler.postDelayed(this, 5000);
                 }
             };
-
             // Schedule the first update after 5 seconds
             handler.postDelayed(runnable, 5000);
         }
