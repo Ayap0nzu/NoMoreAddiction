@@ -24,9 +24,11 @@ import android.os.Bundle;
 import android.widget.Chronometer;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.w3c.dom.Text;
 
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -38,8 +40,7 @@ public class MainActivity extends AppCompatActivity{
     private static Chronometer chronometer;
     private long pauseOffset = 0;
     private boolean running;
-    ArrayList<String> dateArray = new ArrayList<>();
-    ArrayList<Long> chronometerArray = new ArrayList<>();
+    private List<HistoryEntry> chromometerHistory;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,43 +94,54 @@ public class MainActivity extends AppCompatActivity{
         long chronometerTime = SystemClock.elapsedRealtime() - chronometer.getBase();
         // Save the current chronometer time to SharedPreferences
         SharedPreferences prefs = getSharedPreferences("mySharedPrefsFilename", Context.MODE_PRIVATE);
-
-        //      Don't forget to call apply()
         SharedPreferences.Editor editor = prefs.edit();
         editor.putLong("chronoValue", chronometerTime);
-
         String currentDate = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(new Date());
         editor.putString("currentDate", currentDate);
-
-        // Get the current date
-
         editor.apply();
     }
-
     @Override
     protected void onResume() {
         super.onResume();
-
         SharedPreferences prefs = getSharedPreferences("mySharedPrefsFilename", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
+
+        String historyJson = prefs.getString("history", "");
+        List<HistoryEntry> historyList;
+
+        if (!historyJson.isEmpty()) {
+            // If history exists, deserialize it from JSON using Gson
+            Type historyType = new TypeToken<List<HistoryEntry>>(){}.getType();
+            historyList = new Gson().fromJson(historyJson, historyType);
+        } else {
+            // If history doesn't exist, create a new empty list
+            historyList = new ArrayList<>();
+        }
         long chronometerTime = prefs.getLong("chronoValue", 0);
         String storedDate = prefs.getString("currentDate", "");
-
         // Get the current date
         String currentDate = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(new Date());
 
         //      sharedpreference 파일에 마지막으로 저장된 날짜와 현재 날짜를 비교해 다르면
         //      즉, 하루가 지났으면 스톱워치를 저장한다.
         if (!storedDate.equals(currentDate)) {
-            chronometer.setBase(SystemClock.elapsedRealtime());
+            // Add previous data to historyList
+            historyList.add(new HistoryEntry(chronometerTime, storedDate));
+            String updatedHistoryJson = new Gson().toJson(historyList);
+            editor.putString("history", updatedHistoryJson);
+            chronometerTime = 0;
+            // Update stored date to current date
+            editor.putString("currentDate", currentDate);
             editor.putLong("chronoValue", chronometerTime);
-            editor.apply();
+            // Make sure changes are immediately written to SharedPreferences
+            editor.commit();
+            // Set chronometer base to current time
+            chronometer.setBase(SystemClock.elapsedRealtime());
         }
 
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
         registerReceiver(screenOffReceiver, filter);
 
-        //      알림창 관리
         if (!running) {
             chronometer.setBase(SystemClock.elapsedRealtime() - chronometerTime);
             chronometer.start();

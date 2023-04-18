@@ -11,11 +11,10 @@
     <com.denzcoskun.imageslider.ImageSlider
         android:id="@+id/imageSlider"
         android:layout_width="wrap_content"
-        android:layout_height="1500px"
+        android:layout_height="1450px"
         app:iss_auto_cycle="false"
         app:iss_delay="0"
-        app:iss_period="1000" >
-    </com.denzcoskun.imageslider.ImageSlider>
+        app:iss_period="1000"></com.denzcoskun.imageslider.ImageSlider>
 
     <Button
         android:id="@+id/button"
@@ -27,9 +26,9 @@
         android:layout_alignParentEnd="true"
         android:layout_centerHorizontal="true"
         android:layout_marginStart="163dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="14dp"
         android:layout_marginEnd="160dp"
-        android:layout_marginBottom="-60dp"
+        android:layout_marginBottom="-62dp"
         android:text="확인" />
 
 </RelativeLayout>
