@@ -19,6 +19,9 @@
         android:theme="@style/Theme.NoMoreAddiction"
         tools:targetApi="27">
         <activity
+            android:name=".HistoryView"
+            android:exported="false" />
+        <activity
             android:name=".firstexecute"
             android:exported="false" />
         <activity

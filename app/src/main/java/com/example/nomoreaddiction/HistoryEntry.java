@@ -1,5 +1,7 @@
 package com.example.nomoreaddiction;
 
+import android.widget.Button;
+
 public class HistoryEntry {
     private long chronometerTime;
     private String storedDate;

@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity{
     private long pauseOffset = 0;
     private boolean running;
     private List<HistoryEntry> chromometerHistory;
+    private Button button;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +51,17 @@ public class MainActivity extends AppCompatActivity{
         String formattedDate = sdf.format(new Date());
         TextView textView = (TextView) findViewById(R.id.DATE);
         textView.setText(formattedDate);
+
+        button = (Button) findViewById(R.id.button3);
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, HistoryView.class);
+                startActivity(intent);
+            }
+        });
+
 
         //      스탑워치
         chronometer = findViewById(R.id.chronometer);
